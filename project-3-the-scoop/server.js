@@ -1,11 +1,56 @@
 // database is let instead of const to allow us to modify it in test.js
-let database = {
-  users: {},
-  articles: {},
-  comments: {},
-  nextArticleId: 1,
-  nextCommentId: 1
-};
+/*let 
+};*/
+
+const yaml = require('js-yaml');
+const fs = require('fs');
+
+let database;
+let ymlFileHdl;
+
+const ymlFile = 'database.yml';
+
+function newDataBase() {
+  database = {
+    users: {},
+    articles: {},
+    comments: {},
+    nextArticleId: 1,
+    nextCommentId: 1
+  }
+}
+
+function loadDatabase() {
+
+  try {
+    ymlFileDesc = fs.readFileSync(ymlFile, 'utf8');
+  } catch (e) {
+    console.log("Database YAML file not found. Creating a new one");
+    ymlFileDesc = fs.openSync(ymlFile, 'w');
+    fs.closeSync(ymlFileDesc);
+  }
+
+  try {
+    database = yaml.safeLoad(fs.readFileSync(ymlFile, 'utf8'));
+  } catch (e) {
+    console.log(e);
+  }
+
+  if (typeof database === 'object') {
+    console.log("Database loaded succesfully");
+  } else {
+    console.log("Database file is empty. Creating a new one");
+    newDataBase();
+  }
+}
+
+function saveDatabase() {
+  try {
+    fs.writeFileSync(ymlFile, yaml.safeDump(database));
+  } catch (e) {
+    console.log("Could not save database: ", e);
+  }
+}
 
 const routes = {
   '/users': {
@@ -400,7 +445,7 @@ const requestHandler = (request, response) => {
 
   if (method === 'GET' || method === 'DELETE') {
     const methodResponse = routes[route][method].call(null, url);
-    !isTestMode && (typeof saveDatabase === 'function') && saveDatabase();
+    !isTestMode && (method === 'DELETE') && (typeof saveDatabase === 'function') && saveDatabase();
 
     response.statusCode = methodResponse.status;
     response.end(JSON.stringify(methodResponse.body) || '');
