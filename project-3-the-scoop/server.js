@@ -1,12 +1,13 @@
-// database is let instead of const to allow us to modify it in test.js
-/*let 
-};*/
-
 const yaml = require('js-yaml');
 const fs = require('fs');
 
-let database;
-let ymlFileHdl;
+let database = {
+    users: {},
+    articles: {},
+    comments: {},
+    nextArticleId: 1,
+    nextCommentId: 1
+  }
 
 const ymlFile = 'database.yml';
 
@@ -21,6 +22,8 @@ function newDataBase() {
 }
 
 function loadDatabase() {
+
+  let ymlFileDesc;
 
   try {
     ymlFileDesc = fs.readFileSync(ymlFile, 'utf8');
